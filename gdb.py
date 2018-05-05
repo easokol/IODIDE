@@ -301,7 +301,7 @@ class MemmapHTML(wx.html.HtmlWindow):
 		self.win.Bind(wx.EVT_MENU, self.OnPopupReadmem, id=self.win.popupID2)
        		menu = wx.Menu()
        		item = wx.MenuItem(menu, self.win.popupID1, "Disassemble")
-	        menu.AppendItem(item) 
+	        menu.Append(item) 
 		menu.Append(self.win.popupID2, "Read memory")     		
        		self.win.PopupMenu(menu)
        		menu.Destroy()
@@ -693,8 +693,7 @@ class gdbproto:
 	connectstatuswin.SetFocus()
 
 	image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-	icon = wx.EmptyIcon() 
-	icon.CopyFromBitmap(image) 
+	icon = wx.Icon(image) 
 	connectstatuswin.SetIcon(icon) 
 
 	g1 = wx.Gauge(connectstatuswin, -1, 4200, (5, 20), (200, 25))
@@ -758,8 +757,7 @@ class gdbproto:
 		self.win.statusbar.SetStatusText("", 0)
 
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.connectgdbwin.SetIcon(icon) 
 
 		vs = wx.BoxSizer( wx.VERTICAL )
@@ -987,8 +985,7 @@ class gdbproto:
 	self.connectconfwin = self.CreateConnectConfWindow()
 
 	image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-	icon = wx.EmptyIcon() 
-	icon.CopyFromBitmap(image) 
+	icon = wx.Icon(image) 
 	self.connectconfwin.SetIcon(icon) 
 
 	vs = wx.BoxSizer( wx.VERTICAL )
@@ -1169,7 +1166,7 @@ class gdbproto:
 	
         dlg = wx.FileDialog(
             self.win, message="Save file as ...", defaultDir=os.getcwd(), 
-            defaultFile="", wildcard=wildcard, style=wx.SAVE
+            defaultFile="", wildcard=wildcard, style=wx.FD_SAVE
             )
 
         dlg.SetFilterIndex(2)
@@ -1184,8 +1181,7 @@ class gdbproto:
 		downloadwin = self.CreateDownloadWindow()
 
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		downloadwin.SetIcon(icon) 
 
 		downloadwin.Center()
@@ -1290,7 +1286,7 @@ class gdbproto:
 	path = ""
         dlg = wx.FileDialog(
             self.win, message="Choose a file", defaultDir=os.getcwd(), 
-            defaultFile="default", wildcard="*.*", style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+            defaultFile="default", wildcard="*.*", style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
             )
 
         dlg.SetFilterIndex(2)
@@ -1385,7 +1381,7 @@ class gdbproto:
 	path = ""
 		
         dlg = wx.FileDialog(self.win, message="Save file as ...", defaultDir=os.getcwd(), 
-        		    defaultFile="default", wildcard="*.txt", style=wx.SAVE)
+        		    defaultFile="default", wildcard="*.txt", style=wx.FD_SAVE)
 
         dlg.SetFilterIndex(2)	
 
@@ -1415,7 +1411,7 @@ class gdbproto:
 		
         	dlg = wx.FileDialog(
            	 self.win, message="Save file as ...", defaultDir=os.getcwd(), 
-            	defaultFile="default", wildcard="*.iod", style=wx.SAVE
+            	defaultFile="default", wildcard="*.iod", style=wx.FD_SAVE
             	)
 
         	dlg.SetFilterIndex(2)	
@@ -1511,7 +1507,7 @@ class gdbproto:
 	tmpcomment = []
         dlg = wx.FileDialog(
             self.win, message="Choose a file", defaultDir=os.getcwd(), 
-            defaultFile="default", wildcard="*.iod", style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR
+            defaultFile="default", wildcard="*.iod", style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
             )
 
         dlg.SetFilterIndex(2)
@@ -2228,8 +2224,7 @@ class gdbproto:
             	self.memreadwin = self.CreateMemoryWindow ()
 
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.memreadwin.SetIcon(icon) 
 
 		self.MemoryHTMLCtrl = wx.html.HtmlWindow(self.memreadwin, -1, wx.DefaultPosition, wx.Size(700, 195))
@@ -2238,10 +2233,10 @@ class gdbproto:
 
 		memtoolbar = self.memreadwin.CreateToolBar()
 		
-		memtoolbar.AddSimpleTool(ID_mem_back, wx.Image('images/av_back_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display previous memory', 'Display previous memory')
+		memtoolbar.AddTool(ID_mem_back, 'Display previous memory', wx.Image('images/av_back_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display previous memory')
         	self.win.Bind(wx.EVT_TOOL, self.OnMemBackClick, id=ID_mem_back)
 
-		memtoolbar.AddSimpleTool(ID_mem_forward, wx.Image('images/av_play_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display next memory', 'Display next memory')
+		memtoolbar.AddTool(ID_mem_forward, 'Display next memory', wx.Image('images/av_play_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display next memory')
 		self.win.Bind(wx.EVT_TOOL, self.OnMemForwardClick, id=ID_mem_forward)
 
 		memtoolbar.AddSeparator()
@@ -2249,7 +2244,7 @@ class gdbproto:
 		search = TestSearchCtrl(memtoolbar, size=(150,-1), doSearch=self.DoMemSearch)
         	memtoolbar.AddControl(search)
 
-		memtoolbar.AddSimpleTool(ID_search_mem_next, wx.Image('images/forward_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Find next', 'Find next')
+		memtoolbar.AddTool(ID_search_mem_next, 'Find next', wx.Image('images/forward_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Find next')
 
 		self.win.Bind(wx.EVT_TOOL, self.OnSearchNext, id=ID_search_mem_next)
 		
@@ -2502,8 +2497,7 @@ class gdbproto:
 	if not self.registrywin:
             	self.registrywin = self.CreateRegistryWindow ()
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.registrywin.SetIcon(icon)
 		self.RegistryHTMLCtrl = wx.html.HtmlWindow(self.registrywin, -1, wx.DefaultPosition, wx.Size(692, 400))
 
@@ -2542,8 +2536,7 @@ class gdbproto:
 	if not self.runningconfigwin:
             	self.runningconfigwin = self.CreateRunningConfigWindow ()
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.runningconfigwin.SetIcon(icon)
 		self.RunningConfigHTMLCtrl = wx.html.HtmlWindow(self.runningconfigwin, -1, wx.DefaultPosition, wx.Size(592, 600))
 
@@ -2565,8 +2558,7 @@ class gdbproto:
 	if not self.processeswin:
             	self.processeswin = self.CreateProcessesWindow ()
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.processeswin.SetIcon(icon)
 		self.ProcessesHTMLCtrl = wx.html.HtmlWindow(self.processeswin, -1, wx.DefaultPosition, wx.Size(312, 400))
 
@@ -2602,8 +2594,7 @@ class gdbproto:
 	if not self.memmapwin:
             	self.memmapwin = self.CreateMemmapWindow ()
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.memmapwin.SetIcon(icon)
 		self.MemmapHTMLCtrl = MemmapHTML(self.memmapwin, -1, wx.DefaultPosition, wx.Size(420, 400))
 
@@ -2760,8 +2751,7 @@ class gdbproto:
             	self.heapreadwin = self.CreateHeapWindow ()
 
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.heapreadwin.SetIcon(icon)
 
 		self.HeapHTMLCtrl = MemmapHTML(self.heapreadwin, -1, wx.DefaultPosition, wx.Size(650, 600))
@@ -2770,10 +2760,10 @@ class gdbproto:
 
 		heaptoolbar = self.heapreadwin.CreateToolBar()
 		
-		heaptoolbar.AddSimpleTool(ID_block_back, wx.Image('images/av_back_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display previous block', 'Display previous block')
+		heaptoolbar.AddTool(ID_block_back, 'Display previous block', wx.Image('images/av_back_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display previous block')
         	self.win.Bind(wx.EVT_TOOL, self.OnBlockBackClick, id=ID_block_back)
 
-		heaptoolbar.AddSimpleTool(ID_block_forward, wx.Image('images/av_play_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display next block', 'Display next block')
+		heaptoolbar.AddTool(ID_block_forward, 'Display next block', wx.Image('images/av_play_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Display next block')
 		self.win.Bind(wx.EVT_TOOL, self.OnBlockForwardClick, id=ID_block_forward)		
 
 		heaptoolbar.Realize()
@@ -3491,8 +3481,7 @@ class gdbproto:
 	searchwin = self.CreateSearchWindow()
 
 	image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-	icon = wx.EmptyIcon() 
-	icon.CopyFromBitmap(image) 
+	icon = wx.Icon(image) 
 	searchwin.SetIcon(icon) 
 
 	searchwin.Center()
@@ -3828,7 +3817,6 @@ class gdbproto:
 	
 
 	if self.bookmarkwin:
-		print "here"
 		dlg = wx.TextEntryDialog(self.bookmarkwin, 'Enter the bookmark text','Bookmark Text')
 	else:		
 		dlg = wx.TextEntryDialog(self.win, 'Enter the bookmark text','Bookmark Text')
@@ -3924,8 +3912,7 @@ class gdbproto:
             	self.bookmarkwin = self.CreateBookmarkWindow ()
 
 		image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-		icon = wx.EmptyIcon() 
-		icon.CopyFromBitmap(image) 
+		icon = wx.Icon(image) 
 		self.bookmarkwin.SetIcon(icon) 
 
 		self.BookmarkHTMLCtrl = wx.html.HtmlWindow(self.bookmarkwin, -1, wx.DefaultPosition, wx.Size(880, 195))
@@ -3934,13 +3921,13 @@ class gdbproto:
 
 		memtoolbar = self.bookmarkwin.CreateToolBar()
 		
-		memtoolbar.AddSimpleTool(ID_add_bookmark, wx.Image('images/document_new_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Add bookmark', 'Add bookmark')
+		memtoolbar.AddTool(ID_add_bookmark, 'Add bookmark', wx.Image('images/document_new_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Add bookmark')
         	self.win.Bind(wx.EVT_TOOL, self.OnAddBookmarks, id=ID_add_bookmark)
 
-		memtoolbar.AddSimpleTool(ID_del_bookmark, wx.Image('images/document_delete_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Delete bookmark', 'Delete bookmark')
+		memtoolbar.AddTool(ID_del_bookmark, 'Delete bookmark', wx.Image('images/document_delete_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Delete bookmark')
 		self.win.Bind(wx.EVT_TOOL, self.OnDelBookmarks, id=ID_del_bookmark)
 
-		memtoolbar.AddSimpleTool(ID_goto_bookmark, wx.Image('images/bookmark_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Go to bookmark', 'Go to bookmark')
+		memtoolbar.AddTool(ID_goto_bookmark, 'Go to bookmark', wx.Image('images/bookmark_small.png',wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 'Go to bookmark')
 		self.win.Bind(wx.EVT_TOOL, self.OnGotoBookmark, id=ID_goto_bookmark)
 
 		memtoolbar.Realize()

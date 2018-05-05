@@ -3,6 +3,7 @@ import os
 import wx
 import wx.html
 import wx.aui
+import wx.adv
 import string
 from wx.lib.wordwrap import wordwrap
 import wx.lib.agw.advancedsplash as AS
@@ -128,7 +129,7 @@ class DisassembleHTML(wx.html.HtmlWindow):
        		menu = wx.Menu()
 
        		item = wx.MenuItem(menu, self.win.popupID1, "Add bookmark")
-	        menu.AppendItem(item)
+	        menu.Append(item)
 
 		menu.Append(self.win.popupID2, "Add comment") 
 		menu.Append(self.win.popupID3, "Add breakpoint") 
@@ -186,7 +187,7 @@ class RegistersHTML(wx.html.HtmlWindow):
 		self.win.Bind(wx.EVT_MENU, self.OnPopupReadmem, id=self.win.popupID2)
        		menu = wx.Menu()
        		item = wx.MenuItem(menu, self.win.popupID1, "Disassemble")
-	        menu.AppendItem(item) 
+	        menu.Append(item) 
 		menu.Append(self.win.popupID2, "Read memory") 
        		self.win.PopupMenu(menu)
        		menu.Destroy()
@@ -237,7 +238,7 @@ class StackHTML(wx.html.HtmlWindow):
 		self.win.Bind(wx.EVT_MENU, self.OnPopupReadmem, id=self.win.popupID2)
        		menu = wx.Menu()
        		item = wx.MenuItem(menu, self.win.popupID1, "Disassemble")
-	        menu.AppendItem(item) 
+	        menu.Append(item) 
 		menu.Append(self.win.popupID2, "Read memory")     		
        		self.win.PopupMenu(menu)
        		menu.Destroy()
@@ -278,7 +279,7 @@ class SigvalHTML(wx.html.HtmlWindow):
        		self.win.Bind(wx.EVT_MENU, self.OnPopupDisassemble, id=self.win.popupID1)
        		menu = wx.Menu()
        		item = wx.MenuItem(menu, self.win.popupID1, "Disassemble")
-	        menu.AppendItem(item)    		
+	        menu.Append(item)    		
        		self.win.PopupMenu(menu)
        		menu.Destroy()
 
@@ -381,8 +382,7 @@ class PyAUIFrame(wx.Frame):
 
 	
  	image = wx.Image('images/iodide16x16.png', wx.BITMAP_TYPE_PNG).ConvertToBitmap() 
-	icon = wx.EmptyIcon() 
-	icon.CopyFromBitmap(image) 
+	icon = wx.Icon(image) 
 	self.SetIcon(icon) 
 
    
@@ -446,7 +446,7 @@ class PyAUIFrame(wx.Frame):
         
         self.SetMenuBar(self.mb)
 
-        self.statusbar = self.CreateStatusBar(3, wx.ST_SIZEGRIP)
+        self.statusbar = self.CreateStatusBar(3, wx.STB_SIZEGRIP)
         self.statusbar.SetStatusWidths([-1,-2, -2])
         self.statusbar.SetStatusText("", 0)
         self.statusbar.SetStatusText("Connection Status: Disconnected from device", 1)
@@ -458,48 +458,48 @@ class PyAUIFrame(wx.Frame):
 
 	self.tb = self.CreateToolBar()
 	
-	self.tb.AddSimpleTool(self.ID_toolConnect, 
+	self.tb.AddTool(self.ID_toolConnect, 
+			 'Connect to device', 
 			 wx.Image('images/connect_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Connect to device', 
 			 'Connect to device')	
 
-	self.tb.AddSimpleTool(self.ID_toolReconnect, 
+	self.tb.AddTool(self.ID_toolReconnect, 
+			 'Reconnect to device', 
 			 wx.Image('images/reconnect_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Reconnect to device', 
 			 'Reconnect to device')
 
-	self.tb.AddSimpleTool(self.ID_toolConfigureConnection, 
+	self.tb.AddTool(self.ID_toolConfigureConnection, 
+			 'Configure connection', 
 			 wx.Image('images/customize_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Configure connection', 
 			 'Configure connection')
 	
 	self.tb.AddSeparator()
 
-	self.tb.AddSimpleTool(self.ID_toolOpen, 
+	self.tb.AddTool(self.ID_toolOpen, 
+			 'Open session', 
 			 wx.Image('images/folder_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Open session', 
 			 'Open session')
 
-	self.tb.AddSimpleTool(self.ID_toolSave, 
+	self.tb.AddTool(self.ID_toolSave, 
+			 'Save session', 
 			 wx.Image('images/save_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Save session', 
 			 'Save session')
 
-	self.tb.AddSimpleTool(self.ID_toolDownload, 
+	self.tb.AddTool(self.ID_toolDownload, 
+			 'Download data from memory', 
 			 wx.Image('images/download_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Download data from memory', 
 			 'Download data from memory')
 
-	self.tb.AddSimpleTool(self.ID_toolUpload, 
+	self.tb.AddTool(self.ID_toolUpload, 
+			 'Upload data to memory', 
 			 wx.Image('images/upload_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Upload data to memory', 
 			 'Upload data to memory')
 
 	self.tb.AddSeparator()
@@ -511,16 +511,16 @@ class PyAUIFrame(wx.Frame):
 		      size = (70,-1), 
 		      style = 0)) 
 
-	self.tb.AddSimpleTool(self.ID_toolDisback, 
+	self.tb.AddTool(self.ID_toolDisback, 
+			 'View previous disassembled memory', 
 			 wx.Image('images/av_back_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'View previous disassembled memory', 
 			 'View previous disassembled memory')
 
-	self.tb.AddSimpleTool(self.ID_toolDisforward, 
+	self.tb.AddTool(self.ID_toolDisforward, 
+			 'View next disassembled memory', 
 			 wx.Image('images/av_play_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'View next disassembled memory', 
 			 'View next disassembled memory')
 
 	self.tb.AddSeparator()
@@ -532,51 +532,51 @@ class PyAUIFrame(wx.Frame):
 		      size = (20,-1), 
 		      style = 0)) 
 
-	self.tb.AddSimpleTool(self.ID_toolStep, 
+	self.tb.AddTool(self.ID_toolStep, 
+			 'Step into', 
 			 wx.Image('images/av_play_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Step into', 
 			 'Step into')
 
-	self.tb.AddSimpleTool(self.ID_toolStepover, 
+	self.tb.AddTool(self.ID_toolStepover, 
+			 'Step over', 
 			 wx.Image('images/av_fast_forward_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Step over', 
 			 'Step over')
 
-	self.tb.AddSimpleTool(self.ID_toolContinue, 
+	self.tb.AddTool(self.ID_toolContinue, 
+	 		 'Continue execution', 
 			 wx.Image('images/forward_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-	 		 'Continue execution', 
 			 'Continue execution')
 
 	self.tb.AddSeparator()
 
 
-	self.tb.AddSimpleTool(self.ID_toolAddBreak, 
+	self.tb.AddTool(self.ID_toolAddBreak, 
+			 'Add breakpoint', 
 			 wx.Image('images/document_new_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-			 'Add breakpoint', 
 			 'Add breakpoint')
 
-	self.tb.AddSimpleTool(self.ID_toolDelBreak, 
+	self.tb.AddTool(self.ID_toolDelBreak, 
+	 		 'Delete breakpoint', 
 			 wx.Image('images/document_delete_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-	 		 'Delete breakpoint', 
 			 'Delete breakpoint')
 
 	self.tb.AddSeparator()
 	
-	self.tb.AddSimpleTool(self.ID_toolListBookmarks, 
+	self.tb.AddTool(self.ID_toolListBookmarks, 
+	 		 'List bookmarks', 
 			 wx.Image('images/bookmark_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-	 		 'List bookmarks', 
 			 'List bookmarks')
 
-	self.tb.AddSimpleTool(self.ID_toolComment, 
+	self.tb.AddTool(self.ID_toolComment, 
+	 		 'Insert comment', 
 			 wx.Image('images/comment_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-	 		 'Insert comment', 
 			 'Insert comment')
 
 	self.tb.AddSeparator()
@@ -584,10 +584,10 @@ class PyAUIFrame(wx.Frame):
 	search = TestSearchCtrl(self.tb, size=(150,-1), doSearch=self.gdb.DoDisSearch)
         self.tb.AddControl(search)
 
-	self.tb.AddSimpleTool(self.ID_toolFindNext, 
+	self.tb.AddTool(self.ID_toolFindNext, 
+	 		 'Find next', 
 			 wx.Image('images/forward_small.png',
 			 wx.BITMAP_TYPE_PNG).ConvertToBitmap(), 
-	 		 'Find next', 
 			 'Find next')
 	
 	self.tb.Realize()
@@ -729,7 +729,7 @@ class PyAUIFrame(wx.Frame):
         self.Destroy()
 
     def OnAbout(self, evt):       
-        info = wx.AboutDialogInfo()
+        info = wx.adv.AboutDialogInfo()
         info.Name = "IODIDE"
         info.Version = "1.0"
         info.Copyright = "(C) 2014 Andy Davis"
@@ -743,7 +743,7 @@ class PyAUIFrame(wx.Frame):
             "the ability to upload binaries into memory.\n\n "
 	    "Developed by Andy Davis (andy.davis@nccgroup.com)",350, wx.ClientDC(self))
 
-        wx.AboutBox(info)
+        wx.adv.AboutBox(info)
 
     def CreateHTMLCtrl(self):
         ctrl = wx.html.HtmlWindow(self, -1, wx.DefaultPosition, wx.Size(300, 300))
