@@ -8,8 +8,6 @@ https://github.com/nccgroup/IODIDE
 
 Released under AGPL see LICENSE for more information
 
-Includes the PowerPC disassembler from cxmon by Christian Bauer, Marc Hellwig (http://cxmon.cebix.net)
-
 ## Documentation
 
 https://github.com/nccgroup/IODIDE/wiki
@@ -21,6 +19,8 @@ https://github.com/nccgroup/IODIDE/wiki
 * wxPython
 
 * pyserial
+
+* capstone
 
 ## Platforms
 

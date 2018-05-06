@@ -8,10 +8,10 @@ import unicodedata
 import subprocess
 import os
 import re
-from ctypes import *
+from capstone import *
 from iodideGUI import TestSearchCtrl
 from socket import *
-import ctypes
+import struct
 
 try:
     from agw import hyperlink as hl
@@ -3135,9 +3135,7 @@ class gdbproto:
 	addr = int(address[0:8],16)
 	displaybuffer = "<html><body><font size=\"9\" face=\"Fixedsys\" color=\"black\">"
 	
-#	dis = cdll.disass #access disass.dll
-	dis = ctypes.cdll.LoadLibrary("disass.dll") #access disass.dll
-	result = create_string_buffer('\000' * 32)
+	dis = Cs(CS_ARCH_PPC, CS_MODE_32)
 	
 	i = j = l = x = y = 0
 	res = ""
@@ -3146,12 +3144,11 @@ class gdbproto:
 		k = 0
 		
 		tmp = memory[i:i+8]
-		word =int(tmp ,16)
-		dis.disass_ppc(result,addr,word)	
+		word = struct.pack("<I", int(tmp ,16))
+		result = dis.disasm(word, addr)
 		
-		while result[k] != "\x00":
-			res = res + result[k]
-			k = k + 1				
+		for ins in result:
+			res = res + "%s\t%s" % (ins.mnemonic, ins.op_str)
 		
 		res = string.replace(res, "\n", "" )		
 		res = string.replace(res, "\t", "&nbsp;" )	
@@ -3245,12 +3242,11 @@ class gdbproto:
 			k = 0
 			res = ""
 			tmp = self.breakpointdata[indexval]
-			word =int(tmp ,16)
-			dis.disass_ppc(result,addr,word)	
+			word = struct.pack("<I", int(tmp ,16))
+			result = dis.disasm(word, addr)
 		
-			while result[k] != "\x00":
-				res = res + result[k]
-				k = k + 1				
+			for ins in result:
+				res = res + "%s\t%s" % (ins.mnemonic, ins.op_str)
 		
 			res = string.replace(res, "\n", "" )		
 			res = string.replace(res, "\t", "&nbsp;" )
