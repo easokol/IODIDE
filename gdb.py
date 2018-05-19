@@ -573,6 +573,7 @@ class gdbproto:
 	"""
 	reply = ""
 	char = ""
+	command = command.encode('ascii')
 	
 
 	if self.connect_mode == "Serial":
@@ -2826,7 +2827,7 @@ class gdbproto:
 	displaybuffer = displaybuffer + "<br>Alloc name:&nbsp;&nbsp;&nbsp;"
 	displaybuffer = displaybuffer + "<font color=\"#000080\">"	#dark blue
 	formatted = self.CreateGetMemoryReq(blockvals[3],"28")	
-	result = self.GdbCommand(formatted.encode('ascii')) #set read memory command
+	result = self.GdbCommand(formatted) #set read memory command
 
 	if result == "E03":
 		wx.MessageBox("Address can not be read", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
@@ -3682,7 +3683,7 @@ class gdbproto:
 	
 	command = self.CreateWriteRegistersReq(regbuf)
 
-	result = self.GdbCommand(command.encode('ascii')) #send write registers command
+	result = self.GdbCommand(command) #send write registers command
 	result = self.GdbCommand("$g#67\n") #set read registers command
 
 	if result == "E03":
@@ -4074,7 +4075,7 @@ class gdbproto:
 
 
 	command = self.CreateWriteMemoryReq(self.breakpoints[breaknum],self.breakpointdata[breaknum],"4")   #write orig data back
-	result = self.GdbCommand(command.encode('ascii')) #send write memory command
+	result = self.GdbCommand(command) #send write memory command
 
 	command = self.CreateGetMemoryReq(self.breakpoints[breaknum],"04")
 	result = self.GdbCommand(command) #set read memory command
@@ -4275,12 +4276,12 @@ class gdbproto:
 		address = "%08x" % addr
 
 		command = self.CreateWriteMemoryReq(address,"7d821008","4")	#write breakpoint
-		result = self.GdbCommand(command.encode('ascii')) #send write memory command
+		result = self.GdbCommand(command) #send write memory command
 
 
 
 		command = self.CreateGetMemoryReq(address,"04")
-		result = self.GdbCommand(command.encode('ascii')) #set read memory command
+		result = self.GdbCommand(command) #set read memory command
 	
 		if result != "7d821008":		
 			wx.MessageBox("Step over failed", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
@@ -4294,10 +4295,10 @@ class gdbproto:
 			self.tn.read_some()
 
 		command = self.CreateWriteMemoryReq(address,self.nextinstruction,"4")	#write breakpoint
-		result = self.GdbCommand(command.encode('ascii')) #send write memory command
+		result = self.GdbCommand(command) #send write memory command
 
 		command = self.CreateGetMemoryReq(address,"04")
-		result = self.GdbCommand(command.encode('ascii')) #set read memory command
+		result = self.GdbCommand(command) #set read memory command
 
 		if result != self.nextinstruction:		
 			wx.MessageBox("Step over failed", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
@@ -4389,10 +4390,10 @@ class gdbproto:
 
 	dlg = wx.TextEntryDialog(self.win, 'Enter address to jump to','Jump to address')
 
-	addr = ""
+	address = ""
 
 	if dlg.ShowModal() == wx.ID_OK:
-            	addr = dlg.GetValue()
+            	address = dlg.GetValue()
 		address = string.lower(address)
 
         dlg.Destroy()
@@ -4402,7 +4403,7 @@ class gdbproto:
 		wx.MessageBox("Invalid address", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
 		return 1
 	
-	request = self.CreateJumpReq(addr)
+	request = self.CreateJumpReq(address)
 
 	self.GdbCommand(request)	# issue the gdb "jump to address" command
 	self.debugstatus = 0
