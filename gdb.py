@@ -305,6 +305,7 @@ class MemmapHTML(wx.html.HtmlWindow):
 		menu.Append(self.win.popupID2, "Read memory")     		
        		self.win.PopupMenu(menu)
        		menu.Destroy()
+	return 0
 
 
 #-------Main gdb class---------------------------------------------------------------------

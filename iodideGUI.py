@@ -139,6 +139,7 @@ class DisassembleHTML(wx.html.HtmlWindow):
 		menu.Append(self.win.popupID7, "Modify memory")	
        		self.win.PopupMenu(menu)
        		menu.Destroy()
+	return 0
 
 
 #-----------------------------------------------------------------------------
@@ -191,6 +192,7 @@ class RegistersHTML(wx.html.HtmlWindow):
 		menu.Append(self.win.popupID2, "Read memory") 
        		self.win.PopupMenu(menu)
        		menu.Destroy()
+	return 0
 
 
 #-----------------------------------------------------------------------------
@@ -242,6 +244,7 @@ class StackHTML(wx.html.HtmlWindow):
 		menu.Append(self.win.popupID2, "Read memory")     		
        		self.win.PopupMenu(menu)
        		menu.Destroy()
+	return 0
 
 #-----------------------------------------------------------------------------
 
@@ -282,6 +285,7 @@ class SigvalHTML(wx.html.HtmlWindow):
 	        menu.Append(item)    		
        		self.win.PopupMenu(menu)
        		menu.Destroy()
+	return 0
 
 
 #-------Create frame----------------------------------------------------------
