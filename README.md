@@ -14,7 +14,7 @@ https://github.com/nccgroup/IODIDE/wiki
 
 ## Pre-requisites
 
-* Python
+* Python 3.x
 
 * wxPython
 

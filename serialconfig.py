@@ -15,7 +15,7 @@ class SerialConfigDialog(wx.Dialog):
         self.serial = kwds['serial']
         del kwds['serial']
         self.show = SHOW_ALL
-        if kwds.has_key('show'):
+        if 'show' in kwds:
             self.show = kwds['show']
             del kwds['show']
         # begin wxGlade: SerialConfigDialog.__init__
