@@ -169,7 +169,7 @@ class RegistersHTML(wx.html.HtmlWindow):
         sel = wx.html.HtmlSelection()
 
         address = cell.ConvertToText(sel)
-        address = string.replace(address, " ", "" )
+        address = address.replace( " ", "" )
 
         if len(address) != 8:
                 return 1

@@ -42,8 +42,6 @@ SHOW_ALL = SHOW_BAUDRATE|SHOW_FORMAT
 wildcard = "All files (*.*)|*.*"
 
 
-
-
 #-------Serial port config dialog----------------------------------------------------------
 
 
@@ -385,10 +383,11 @@ class gdbproto:
       self.session_changed = False
 
       self.connect_mode = "Serial"
-      self.telnet_IP = ""
+#      self.connect_mode = "telnet"
+      self.telnet_IP = "10.1.1.1"
       self.telnet_port = 23
-      self.telnet_vty_password = ""
-      self.telnet_enable_password = ""
+      self.telnet_vty_password = "admin"
+      self.telnet_enable_password = "admin"
       self.comments =[]
       self.registry =[]
 
@@ -534,17 +533,23 @@ class gdbproto:
 
       while i < len(data):
 
-            if data[i] == "*":
+            if data[i] == b'*':
                   multiplier = int(data[i+1] + data[i+2],16)
                   for j in range (0, multiplier):
+#                        reply = reply + chr(data[i-1])
                         reply = reply + data[i-1]
                   i = i + 3
 
-            if data[i] == "#":
+            if data[i] == b'#':
                   break
 
+#            print(reply)
+#            print(data[i])
+#            reply = reply + chr(data[i])
             reply = reply + data[i]
             i = i + 1
+#            print(reply)
+#      print(reply)
       return reply
 
 
@@ -574,36 +579,36 @@ class gdbproto:
       """
       reply = ""
       char = ""
-      command = command.encode('ascii')
-
+#      print(command)
 
       if self.connect_mode == "Serial":
-            self.ser.write(command)
-            while char != "#":
+            self.ser.write( b"%s\n" % command.encode('ascii') )
+            while char != b"#":
                   char = self.ser.read(1)
-                  reply = reply + char
+#                  print(char)
+                  reply = reply + char.decode()
             self.ser.read(2)                   #read checksum bytes
-
       else:
+            self.tn.write( b"%s\n" % command.encode('ascii') )
+#            self.tn.write(command)
+            reply = self.tn.read_until("#".encode('utf-8'),1)
+#            print(reply)
 
-            self.tn.write(command)
-            reply = self.tn.read_until("#",1)
-
-            if reply == "" or reply[0] == "$":
-                  self.tn.write(command)
-                  reply = self.tn.read_until("#",1)
+            if reply == b"" or reply[0] == b"$":
+                  self.tn.write( b"%s\n" % command.encode('ascii') )
+                  reply = self.tn.read_until("#".encode('utf-8'),1)
 
             self.tn.read_some()
 
-
-
-      if reply[0] == "-":
+      if reply[0] == b"-":
             return "E03"
 
-      newrle = self.decodeRLE(reply)
-      decoded = newrle.decode()
+#      newrle = self.decodeRLE(reply)
+#      decoded = newrle.decode()
 
-      while decoded[0] == "|" or decoded[0] == "+" or decoded[0] == "$":
+      decoded = self.decodeRLE(reply)
+
+      while decoded[0] == b"|" or decoded[0] == b"+" or decoded[0] == b"$":
             decoded = decoded[1:]
 
       return decoded
@@ -626,25 +631,33 @@ class gdbproto:
 
             if self.continued == False:
                   try:
-                        self.ser = serial.Serial(self.routerserialport, timeout=1)  # open first serial port
+#                        self.ser = serial.Serial(self.routerserialport, timeout=1)  # open first serial port
+#                        self.ser = serial.Serial('COM1', 9600, timeout=1)  # open first serial port
+                        self.ser = serial.Serial('/dev/ttyS3', 9600, timeout=1)  # open 4-th serial port
                   except:
-                        wx.MessageBox("Serial communication error", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
+                        wx.MessageBox("Serial connection error", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
                         return(1)
   
-                  self.ser.baudrate = 115200
+#                  self.ser.baudrate = 115200
             else:
                   self.connect_after_continue = True
 
-            self.ser.write("\n")  # get the router into a known state
-            self.ser.readline()
-            self.ser.write("term len 0\n")
-            self.ser.readline()
-            self.ser.write("\n")
+            self.ser.write(b"\n")  # get the router into a known state
+#            print(self.ser.readline())
+#            self.ser.write(b"enable\n")  # get the router into a known state
+#            print(self.ser.readline())
+#            self.ser.write(b"admin\n")  # get the router into a known state
+#            print(self.ser.readline())
+            self.ser.write(b"term len 0\n")
+#            print(self.ser.readline())
+            self.ser.write(b"\n")
             reply = self.ser.readline()
             self.hostname = reply[:-3]
 
-            if reply == "":
-                  wx.MessageBox("Serial communication error", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
+#            print(reply)
+#            if reply == "".encode():
+            if reply == b"":
+                  wx.MessageBox("Serial communication error: empty reply", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
                   return(1)
             connection_status = "Connection Status: Connected to \"%s\" via serial" % self.hostname
             self.win.statusbar.SetStatusText(connection_status, 1)
@@ -662,30 +675,30 @@ class gdbproto:
             if self.telnet_vty_password != "":
                   self.tn.read_until("\n".encode('utf-8'))
                   self.tn.read_until("Password: ".encode('utf-8'))
-                  self.tn.write(self.telnet_vty_password + "\n")
+                  self.tn.write( b"%s\n" % self.telnet_vty_password.encode('ascii') )
                   self.tn.read_some()
-                  self.tn.write("\n")
+                  self.tn.write( b"\n" )
                   self.tn.read_until("\n".encode('utf-8'))
 
             if self.telnet_enable_password != "":
-                  self.tn.write("\n")
-                  self.tn.read_until("\n",1)
-                  self.tn.write("\n")
-                  self.tn.read_until("\n",1)
-                  self.tn.write("en\n")
-                  self.tn.read_until("Password: ")
-                  self.tn.write(self.telnet_enable_password + "\n")
+                  self.tn.write( b"\n" )
+                  self.tn.read_until("\n".encode('utf-8'),1)
+                  self.tn.write( b"\n" )
+                  self.tn.read_until("\n".encode('utf-8'),1)
+                  self.tn.write( b"enable\n" )
+                  self.tn.read_until("Password: ".encode('utf-8'))
+                  self.tn.write( b"%s\n" % self.telnet_enable_password.encode('ascii') )
                   self.tn.read_some()
 
-            self.tn.read_until("\n",1)
-            self.tn.write("\r\n")
-            self.tn.read_until("#",1)
-            self.tn.write("term len 0\n")
-            self.tn.read_until("#",1)
-            self.tn.write("\r\n")
-            self.tn.read_until("#",1)
-            self.tn.write("\r\n")
-            reply = self.tn.read_until("#",1)
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.write(b"\r\n")
+            self.tn.read_until("#".encode('utf-8'),1)
+            self.tn.write(b"term len 0\n")
+            self.tn.read_until("#".encode('utf-8'),1)
+            self.tn.write(b"\r\n")
+            self.tn.read_until("#".encode('utf-8'),1)
+            self.tn.write(b"\r\n")
+            reply = self.tn.read_until("#".encode('utf-8'),1)
 
 
             connection_status = "Connection Status: Connected to %s" % self.telnet_IP
@@ -816,17 +829,18 @@ class gdbproto:
 
 
       if self.connect_mode == "Serial":
-            self.ser.write("\n")  # get the router into a known state
+            self.ser.write(b"\n")  # get the router into a known state
             self.ser.readline()
-            self.ser.write("\n")
+            self.ser.write(b"\n")
             self.ser.readline()
       else:
-            self.tn.write("\r\n")
-            self.tn.read_until("\n",1)
-            self.tn.write("\r\n")
-            self.tn.read_until("\n",1)
+            self.tn.write(b"\r\n")
+            self.tn.read_until("\n".encode('utf-8'))
+            self.tn.write(b"\r\n")
+            self.tn.read_until("\n".encode('utf-8'),1)
 
 
+#      print("Entering debug mode")
       self.EnterGdbMode()
       val = self.OnReadReg(1)
 
@@ -1621,18 +1635,18 @@ class gdbproto:
     def      RouterShowRegion(self):
 
       if self.connect_mode == "Serial":
-            self.ser.write("show region\n")      # get region info
+            self.ser.write(b"show region\n")      # get region info
             self.ser.readline()
             region = self.ser.read(900)
 
       else:
 
-            self.tn.write("show region")      # get region info
-            self.tn.write("\r\n")
-            self.tn.read_until("\n",1)
-            region = self.tn.read_until("#",1)
+            self.tn.write(b"show region")      # get region info
+            self.tn.write(b"\r\n")
+            self.tn.read_until("\n".encode('utf-8'),1)
+            region = self.tn.read_until("#".encode('utf-8'),1)
 
-      t,n = re.subn(';.*\n', '', region)
+      t,n = re.subn(';.*\n', '', region.decode('utf-8'))
       self.reglist = t.split()
 
       x = 8
@@ -1655,23 +1669,23 @@ class gdbproto:
 
 
                   tmp = self.reglist[x]
-                  tmp = string.replace(tmp, ":", "." )
+                  tmp = tmp.replace(":", ".")
                   self.reglist_final.append(tmp)      # get region name
 
                   if self.reglist[x] == "main:heap":
                         self.heapstart = self.reglist[x-5]
                         self.heapstart = self.heapstart[2:]
-                        self.heapstart = string.lower(self.heapstart)
+                        self.heapstart = self.heapstart.lower
 
                   if self.reglist[x] == "main:data":
                         self.datastart = self.reglist[x-5]
                         self.datastart = self.datastart[2:]
-                        self.datastart = string.lower(self.datastart)
+                        self.datastart = self.datastart.lower
 
                   if self.reglist[x] == "main:text":
                         self.textstart = self.reglist[x-5]
                         self.textstart = self.textstart[2:]
-                        self.textstart = string.lower(self.textstart)
+                        self.textstart = self.textstart.lower
 
                   if x < len(self.reglist) - 1:
                         x = x + 1
@@ -1707,17 +1721,17 @@ class gdbproto:
     def      RouterShowProcess(self):
 
       if self.connect_mode == "Serial":
-            self.ser.write("show processes\n")      # get process info
+            self.ser.write(b"show processes\n")      # get process info
             self.ser.readline()
             self.ser.readline() # ignore headings
             self.ser.readline() # ignore headings
 
       else:
-            self.tn.write("show processes")      # get process info
-            self.tn.write("\r\n")      # get process info
-            self.tn.read_until("\n",1)
-            self.tn.read_until("\n",1)
-            self.tn.read_until("\n",1)
+            self.tn.write(b"show processes")      # get process info
+            self.tn.write(b"\r\n")      # get process info
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.read_until("\n".encode('utf-8'),1)
 
       reply ="   "
       complete_reply = ""
@@ -1725,23 +1739,24 @@ class gdbproto:
 
       if self.connect_mode == "Serial":
             reply = self.ser.readline()
+            reply = self.ser.readline()
       else:
-            reply = self.tn.read_until("\n")
+            reply = self.tn.read_until("\n".encode('utf-8'),1)
 
-      while reply[len(reply)-1] != "#":
-            if reply[0:4] == " PID":
+      while reply[len(reply)-1] != ord("#"):
+            if reply[0:4] == b" PID":
                   if self.connect_mode == "Serial":
                         reply = self.ser.readline()
                   else:
-                        reply = self.tn.read_until("\n")
+                        reply = self.tn.read_until("\n".encode('utf-8'))
 
             self.pid.append(int(reply[0:4]))
             self.procname.append(reply[64:len(reply)-2])
             if self.connect_mode == "Serial":
                   reply = self.ser.readline()
             else:
-                  reply = self.tn.read_until("\n",1)
-                  if reply == "":
+                  reply = self.tn.read_until("\n".encode('utf-8'),1)
+                  if reply == b"":
                         reply = self.tn.read_some()
       return 0
 
@@ -1752,49 +1767,49 @@ class gdbproto:
     def      RouterShowRun(self):
 
       if self.connect_mode == "Serial":
-            self.ser.write("show run\n")      # get running config
+            self.ser.write(b"show run\n")      # get running config
             self.ser.readline()
             self.ser.readline()
             self.ser.readline()
             self.ser.readline()
             self.ser.readline()
       else:
-            self.tn.write("show run")      # get running config
-            self.tn.write("\r\n")
-            self.tn.read_until("\n",1)
-            self.tn.read_until("\n",1)
-            self.tn.read_until("\n",1)
-            self.tn.read_until("\n",1)
-            self.tn.read_until("\n",1)
+            self.tn.write(b"show run")      # get running config
+            self.tn.write(b"\r\n")
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.read_until("\n".encode('utf-8'),1)
+            self.tn.read_until("\n".encode('utf-8'),1)
 
-      reply = "  "
+      reply = "  ".encode()
 
-      while reply != "end\r\n":
+      while reply.decode() != "end\r\n":
             if self.connect_mode == "Serial":
                   reply = self.ser.readline()
             else:
-                  reply = self.tn.read_until("\n")
-            self.showrun = self.showrun + reply
+                  reply = self.tn.read_until("\n".encode('utf-8'))
+            self.showrun += reply.decode()
 
       #self.showrun = self.showrun[29:]
-      self.showrun = string.replace(self.showrun, ":", "" )
-      self.showrun = string.replace(self.showrun, "\r\n", "<br>" )
+      self.showrun = self.showrun.replace( ":", "" )
+      self.showrun = self.showrun.replace( "\r\n", "<br>" )
 
       # mop up the trailing text
 
       if self.connect_mode == "Serial":
             reply = self.ser.readline()
       else:
-            reply = self.tn.read_until("\n")
+            reply = self.tn.read_until("\n".encode('utf-8'))
 
 
       if self.connect_mode == "Serial":
-            self.ser.write("\n")
+            self.ser.write(b"\n")
             self.ser.readline()
 
       else:
-            self.tn.write("\r\n")
-            self.tn.read_until("#",1)
+            self.tn.write(b"\r\n")
+            self.tn.read_until("#".encode('utf-8'),1)
 
       return 0
 
@@ -1809,22 +1824,22 @@ class gdbproto:
       processor = ""
 
       if self.connect_mode == "Serial":
-            self.ser.write("sh ver | inc \\) processor\n")
+            self.ser.write(b"sh ver | inc \\) processor\n")
             self.ser.readline()
             reply = self.ser.readline()
 
       else:
 
-            self.tn.write("\n")
-            self.tn.read_until("#",1)
-            self.tn.write("sh ver | inc \\) processor\n")
-            reply = self.tn.read_until("#",1)
+            self.tn.write(b"\n")
+            self.tn.read_until("#".encode('utf-8'),1)
+            self.tn.write(b"sh ver | inc \\) processor\n")
+            reply = self.tn.read_until("#".encode('utf-8'),1)
 
-      i = reply.find(' (')
+      i = reply.find(' ('.encode('utf-8'))
       processor = ""
       x = i+2
-      while reply[x] != ")":
-            processor += reply[x]
+      while reply[x] != ord(")"):
+            processor += chr(reply[x])
             x += 1
 
       self.processor = processor
@@ -1836,21 +1851,21 @@ class gdbproto:
     def      DetectIOSVersion(self):
 
       if self.connect_mode == "Serial":
-            self.ser.write("sh ver | inc IOS\n")
+            self.ser.write(b"sh ver | inc IOS\n")
             self.ser.readline()
             reply = self.ser.readline()
 
       else:
 
-            self.tn.write("\n")
-            self.tn.read_until("#",1)
-            self.tn.write("sh ver | inc IOS\n")
-            reply = self.tn.read_until("#",1)
+            self.tn.write(b"\n")
+            self.tn.read_until("#".encode('utf-8'),1)
+            self.tn.write(b"sh ver | inc IOS\n")
+            reply = self.tn.read_until("#".encode('utf-8'),1)
 
-      i = reply.find('Version')
+      i = reply.find('Version'.encode('utf-8'))
       i = i + 8
 
-      self.IOSVersion = "%s" % reply[i:i+4]
+      self.IOSVersion = "%s".encode('utf-8') % reply[i:i+4]
 
 
 #-------Collect registry information-------------------------------------------------------
@@ -1862,12 +1877,12 @@ class gdbproto:
       processor = ""
 
       if self.connect_mode == "Serial":
-            self.ser.write("sh registry brief | inc Stub\n")
+            self.ser.write(b"sh registry brief | inc Stub\n")
             self.ser.readline()
       else:
-            self.tn.write("sh registry brief | inc Stub")
-            self.tn.write("\r\n")
-            self.tn.read_until("\n")
+            self.tn.write(b"sh registry brief | inc Stub")
+            self.tn.write(b"\r\n")
+            self.tn.read_until("\n".encode('utf-8'))
 
       reply ="   "
       address = ""
@@ -1877,7 +1892,7 @@ class gdbproto:
       if self.connect_mode == "Serial":
             reply = self.ser.readline()
       else:
-            reply = self.tn.read_until("\n")
+            reply = self.tn.read_until("\n".encode('utf-8'))
 
       while reply[len(reply)-1] != "#":
 
@@ -1895,8 +1910,8 @@ class gdbproto:
             if self.connect_mode == "Serial":
                   reply = self.ser.readline()
             else:
-                  reply = self.tn.read_until("\n",1)
-                  if reply == "":
+                  reply = self.tn.read_until("\n".encode('utf-8'),1)
+                  if reply == b"":
                         reply = self.tn.read_some()
       return 0
 
@@ -1916,7 +1931,7 @@ class gdbproto:
             x = 0
 
             while x < len(self.procname)-1:
-                  if self.procname[x] == self.gdb_connect_debug_process:
+                  if self.procname[x].decode() == self.gdb_connect_debug_process:
                         connect_string = connect_string + "%d" % self.pid[x]
                         connect_string = connect_string + "\r\n"
                         status = "Debugging Status: Debugging %s" % self.gdb_connect_debug_process
@@ -1948,7 +1963,7 @@ class gdbproto:
 
             x = 0
             while x < len(self.procname)-1:
-                  if self.procname[x] == self.gdb_connect_examine_process:
+                  if self.procname[x].decode() == self.gdb_connect_examine_process:
                         connect_string = connect_string + "%d" % self.pid[x]
                         connect_string = connect_string + "\r\n"
                         status = "Debugging Status: Debugging (read only) %s" % self.gdb_connect_examine_process
@@ -1957,14 +1972,13 @@ class gdbproto:
                   x = x + 1
 
       if self.connect_mode == "Serial":
-            self.ser.write(connect_string)      # put router into gdb mode
+            self.ser.write( b"%s\n" % connect_string.encode('ascii') ) # put router into gdb mode
+#            self.ser.write(connect_string)      # put router into gdb mode
             self.ser.readline()
             self.ser.read(4)
-
       else:
-            self.tn.write(connect_string)      # put router into gdb mode
-            self.tn.read_until("||||",1)
-            #self.tn.read_some()
+            self.tn.write( b"%s\n" % connect_string.encode('ascii') ) # put router into gdb mode
+            self.tn.read_until("||||".encode('utf-8'),1)
 
       self.debugstatus = 1
 
@@ -1980,12 +1994,12 @@ class gdbproto:
 
       if self.connectstatus == 1:
             if self.connect_mode == "Serial":
-                  self.ser.write("$c#63\n")      # exit gdb mode
+                  self.ser.write(b"$c#63\n")      # exit gdb mode
                   self.ser.readline()
                   self.ser.close()      #close serial port
             else:
-                  self.tn.write("$c#63\n")      # exit gdb mode
-                  self.tn.read_until("\n",1)
+                  self.tn.write(b"$c#63\n")      # exit gdb mode
+                  self.tn.read_until("\n".encode('utf-8'),1)
                   self.tn.close()
 
       if self.session_changed == True:
@@ -2037,7 +2051,7 @@ class gdbproto:
       i = 0
       displaybuffer = displaybuffer + "<font color=\"#0000ff\">"      #light blue
       while i < len(result):
-            if result[i:i+8] == "fd0110df":
+            if result[i:i+8] == b"fd0110df":
                   break
             displaybuffer = displaybuffer + result[i:i+8]
             displaybuffer = displaybuffer + "<br>"
@@ -2056,8 +2070,10 @@ class gdbproto:
       """
       Read the registers and display them in the registers window
       """
+#      print("trying to read registers...")
       result = self.GdbCommand("$g#67\n") #set read registers command
 
+#      print(result)
       if result == "E03":
             wx.MessageBox("Address can not be read", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
             return 1
@@ -2078,13 +2094,18 @@ class gdbproto:
       i = 8
       j = 0
 
+#      print(regbuffer)
+
       while i < 328:
             tmp = regbuffer[i:i+8]
+#            print(tmp)
             self.regvals[j] = tmp
             i = i + 8
             j = j + 1
 
       self.program_counter = self.regvals[32].encode('ascii')      # the unicode problem
+#      print(self.regvals[32])
+#      print(self.program_counter)
       self.stack_pointer = self.regvals[1].encode('ascii')      # the unicode problem
 
       self.currentmem = self.program_counter
@@ -2293,12 +2314,12 @@ class gdbproto:
 #-------Format a gdb read memory request---------------------------------------------------
 
 
-    def CreateGetMemoryReq(self, address, len):
+    def CreateGetMemoryReq(self, address, lenth):
       """
       Creates a gdb request for memory and returns the formatted request
       """
-      address = "m" + address + "," + len
-      formatted = self.checksum(address)
+      addr = "m" + address.decode() + "," + lenth
+      formatted = self.checksum(addr)
       formatted = formatted + "\n"
       return formatted
 
@@ -2928,7 +2949,7 @@ class gdbproto:
 
             memory = self.GdbCommand(formatted) #set read memory command
 
-            if memory == "E03":
+            if memory == b"E03":
                   wx.MessageBox("Address can not be read", caption="Error", style=wx.OK|wx.ICON_ERROR, parent=self.win)
                   return 1
 
@@ -2973,7 +2994,7 @@ class gdbproto:
             for x in range (0, len (memory)):      #loop thorough all bytes (two digits per byte)
 
                   wx.Yield()
-                  if memory[x:x+8] == "fd0110df":
+                  if memory[x:x+8] == b"fd0110df":
                         redzone = 1
                         break
 
@@ -3088,7 +3109,6 @@ class gdbproto:
       else:
             address = self.currentdisass
 
-
       if self.dispDialog == 1:
 
             dlg = wx.TextEntryDialog(self.win, 'Enter the address to disassemble from','Disassemble')
@@ -3108,6 +3128,9 @@ class gdbproto:
 
       result = self.GdbCommand(formatted) #set read memory command
 
+      print(address)
+      print(formatted)
+      print(result)
       if result == "E03":
             displaybuffer = "<html><body><font size=\"9\" face=\"Fixedsys\" color=\"black\">"
             displaybuffer = displaybuffer + "Address %s can not be read" % address
@@ -3125,8 +3148,6 @@ class gdbproto:
 
     def OnRightClick(self,event):
       address = event.GetLabelText()
-      print(address)
-
 
 
 #-------Disassemble memory-----------------------------------------------------------------
@@ -3283,14 +3304,14 @@ class gdbproto:
 
             # Is it a branch command?
 
-            if tmp[j:j+2] == "48" or tmp[j:j+2] == "4b":
+            if tmp[j:j+2] == b"48" or tmp[j:j+2] == b"4b":
                   displaybuffer = displaybuffer + "<font color=\"#657383\">"      #grey
                   displaybuffer = displaybuffer + "#&nbsp;-------------------------------------------------------<br><br>"
                   displaybuffer = displaybuffer + "</font>"
 
             # Is it a blr command?
 
-            if tmp[j:j+8] == "4e800020":
+            if tmp[j:j+8] == b"4e800020":
 
                   displaybuffer = displaybuffer + "<font color=\"#657383\">"      #grey
                   displaybuffer = displaybuffer + "#&nbsp;Function end<br><br>"
@@ -4230,7 +4251,7 @@ class gdbproto:
             displaybuffer = displaybuffer + "<font color=\"#0000ff\">"      #light blue
             while i < len (result):
 
-                  if result[i] == ";":
+                  if result[i] == b";":
                         displaybuffer = displaybuffer + "<br>"
                         i = i + 1
 
@@ -4251,10 +4272,10 @@ class gdbproto:
     def OnStepInto(self, evt):
 
       if self.connect_mode == "Serial":
-            self.ser.write("$s#73\n")
+            self.ser.write(b"$s#73\n")
             self.ser.read(5)
       else:
-            self.tn.write("$s#73\n")
+            self.tn.write(b"$s#73\n")
             self.tn.read_some()
       self.OnReadReg(1)
       self.OnReadStack()
@@ -4289,10 +4310,10 @@ class gdbproto:
                   return 1
 
             if self.connect_mode == "Serial":
-                  self.ser.write("$c#63\n")
+                  self.ser.write(b"$c#63\n")
                   self.ser.read(5)
             else:
-                  self.tn.write("$c#63\n")
+                  self.tn.write(b"$c#63\n")
                   self.tn.read_some()
 
             command = self.CreateWriteMemoryReq(address,self.nextinstruction,"4")      #write breakpoint
@@ -4307,10 +4328,10 @@ class gdbproto:
 
       else:
             if self.connect_mode == "Serial":
-                  self.ser.write("$s#73\n")
+                  self.ser.write(b"$s#73\n")
                   self.ser.read(5)
             else:
-                  self.tn.write("$s#73\n")
+                  self.tn.write(b"$s#73\n")
                   self.tn.read_some()
 
       self.OnReadReg(1)
@@ -4326,10 +4347,10 @@ class gdbproto:
     def OnContinue(self, evt):
 
       if self.connect_mode == "Serial":
-            self.ser.write("$c#63\n")
+            self.ser.write(b"$c#63\n")
             self.ser.read(5)
       else:
-            self.tn.write("$c#63\n")
+            self.tn.write(b"$c#63\n")
             self.tn.read_some()
 
       self.debugstatus = 0
